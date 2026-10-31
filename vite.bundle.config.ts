@@ -10,7 +10,7 @@ export default defineConfig({
         dts({
             include: ["src"],
             outDirs: "./dist/bundle",
-            tsconfigPath: "./tsconfig.json",
+            tsconfigPath: "./tsconfig.node.json",
         }),
     ],
     build: {
@@ -22,7 +22,11 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: [],
+            external: [
+                //node模块外部化，无需打包
+                "path",
+                "fs",
+            ],
             output: {
                 entryFileNames: "[name].js",
                 chunkFileNames: "chunks/[name]-[hash].js",

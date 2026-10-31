@@ -1,7 +1,9 @@
 {
+  "type": "module",
     "scripts": {
         "dev": "vite",
-        "build":"vite build"
+        "build":"vite build",
+        "runAEALK": "node script/runAEALK.js"
     },
   "devDependencies": {
     "vite": "^8.3.5"

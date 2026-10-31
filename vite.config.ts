@@ -11,7 +11,7 @@ export default defineConfig({
         dts({
             include: ["src"],
             outDirs: "./dist/external",
-            tsconfigPath: "./tsconfig.json",
+            tsconfigPath: "./tsconfig.node.json",
         }),
     ],
     build: {
@@ -24,8 +24,12 @@ export default defineConfig({
         },
         rollupOptions: {
             external: [
+                //将npm包外部化，不进行打包
                 ...Object.keys(pkg.dependencies ?? {}),
                 ...Object.keys(pkg.peerDependencies ?? {}),
+                //node模块外部化，无需打包
+                "path",
+                "fs",
             ],
             output: {
                 entryFileNames: "[name].js",
