@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { encryptStringToString } from "ez-encrypt";
 import type { EncFile } from '../global/encFile.type';
+import type { DataFile } from '../global/dataFile.type';
 import getHash from '../global/getHash';
 
 export type BEF_Opt = {
@@ -87,4 +88,30 @@ export default function buildEncFiles(opt: BEF_Opt) {
             if (log) console.log(`执行文件加密：${filePath} ==> ${outPath}；哈希值：${hash}`);
         } else { if (log) console.log(`哈希值一致，跳过。哈希值：${hash}`); }
     });
+
+    {
+        const dataFP: string = path.join(outputDir, 'data.json');
+        const lke: string[] = (() => { 
+            const ot: string[] = [];
+            for (let i = 0; i < opt.levelKeys.length - 1; i++){
+                ot.push(encryptStringToString(opt.levelKeys[i], opt.levelKeys[i + 1]));
+            }
+            return ot;
+        })();
+        const lkh: string[] = (() => {
+            const ot: string[] = [];
+            for (let i = 0; i < opt.levelKeys.length; i++){
+                ot.push(getHash(opt.levelKeys[i]));
+            }
+            return ot;
+        })();
+        fs.writeFileSync(
+            dataFP,
+            JSON.stringify({
+                levelKeyEnc: lke,
+                levelKeyHash: lkh,
+            } as DataFile),
+        );
+        if (log) console.log(`数据文件写入：${dataFP}`);
+    }
 }
