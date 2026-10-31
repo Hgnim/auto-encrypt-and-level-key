@@ -45,6 +45,7 @@
   "homepage": "https://github.com/Hgnim/auto-encrypt-and-level-key#readme",
   "devDependencies": {
     "@types/imurmurhash": "^0.1.4",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^26.6.6",
     "typescript": "^6.0.3",
     "vite": "^8.3.5",
@@ -52,6 +53,7 @@
   },
   "dependencies": {
     "ez-encrypt": "github:Hgnim/ez-encrypt",
-    "imurmurhash": "^0.1.4"
+    "imurmurhash": "^0.1.4",
+    "js-cookie": "^3.0.8"
   }
 }

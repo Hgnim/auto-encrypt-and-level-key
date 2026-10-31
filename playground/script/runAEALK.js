@@ -6,7 +6,7 @@ import buildEncFiles from '../../dist/bundle/node.js';
 
 buildEncFiles({
     rootDir: path.join(__dirname, '../aealk'),
-    outputDir: '../dist/aealk',
+    outputDir: '../public/aealk',
     log: true,
     levelKeys: [
         "testKey0",
