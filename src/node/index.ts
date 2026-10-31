@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { encryptStringToString } from "ez-encrypt";
 import type { EncFile } from '../global/encFile.type';
-
+import getHash from '../global/getHash';
 
 export type BEF_Opt = {
     rootDir: string,
@@ -53,24 +53,38 @@ export default function buildEncFiles(opt: BEF_Opt) {
             outDir,
             `${output_name === undefined ? path.basename(filePath) : output_name}.enc.json`,
         );
-
-        const sourceContent:string = fs.readFileSync(filePath, "utf8");
-        const key:string = (() => {
-            let k: string = '';
-            for (let i = 0; i <= keyLevel; i++){
-                k += opt.levelKeys[i];
-            }
-            return k;
+        let hash: string | null = (() => {
+            if (fs.existsSync(outPath)) {
+                const haveFile = JSON.parse(fs.readFileSync(outPath, "utf8")) as EncFile;
+                if(log) console.log(`输出文件已存在：${outPath}；哈希值：${haveFile.hash}`);
+                return haveFile.hash;
+            } else return null;
         })();
-        const encContent = encryptStringToString(sourceContent, key);
 
-        fs.writeFileSync(
-            outPath,
-            JSON.stringify({
-                encContent: encContent,
-            } as EncFile),
-        );
+        const sourceContent: string = fs.readFileSync(filePath, "utf8");
+        const sourceHash: string = getHash(sourceContent);
+        if (hash != sourceHash) {
+            hash = sourceHash;
 
-        if (log) console.log(`执行文件加密：${filePath} ==> ${outPath}`);
+            const key: string = (() => {
+                let k: string = "";
+                for (let i = 0; i <= keyLevel; i++) {
+                    k += opt.levelKeys[i];
+                }
+                return k;
+            })();
+            const encContent = encryptStringToString(sourceContent, key);
+
+            fs.writeFileSync(
+                outPath,
+                JSON.stringify({
+                    encContent: encContent,
+                    hash: hash,
+                    level: de.keyLevel,
+                } as EncFile),
+            );
+
+            if (log) console.log(`执行文件加密：${filePath} ==> ${outPath}；哈希值：${hash}`);
+        } else { if (log) console.log(`哈希值一致，跳过。哈希值：${hash}`); }
     });
 }
