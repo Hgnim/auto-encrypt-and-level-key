@@ -1,0 +1,51 @@
+{
+  "name": "auto-encrypt-and-level-key",
+  "version": "0.0.0",
+  "description": "",
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/external/client.js",
+  "types": "./dist/external/client/index.d.ts",
+  "exports": {
+    "./node": {
+      "types": "./dist/external/node/index.d.ts",
+      "node": "./dist/external/node.js"
+    },
+    "./client": {
+      "types": "./dist/external/client/index.d.ts",
+      "browser": "./dist/external/client.js"
+    },
+    "./bundle/node": {
+      "types": "./dist/bundle/node/index.d.ts",
+      "node": "./dist/bundle/node.js"
+    },
+    "./bundle/client": {
+      "types": "./dist/bundle/client/index.d.ts",
+      "browser": "./dist/bundle/client.js"
+    }
+  },
+  "scripts": {
+    "build": "npm run build:external && npm run build:bundle",
+    "build:external": "vite build",
+    "build:bundle": "vite build --config vite.bundle.config.ts",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Hgnim/auto-encrypt-and-level-key.git"
+  },
+  "keywords": [],
+  "author": "Hgnim",
+  "license": "AGPL-3.0",
+  "bugs": {
+    "url": "https://github.com/Hgnim/auto-encrypt-and-level-key/issues"
+  },
+  "homepage": "https://github.com/Hgnim/auto-encrypt-and-level-key#readme",
+  "devDependencies": {
+    "typescript": "^6.0.3",
+    "vite": "^8.3.5",
+    "vite-plugin-dts": "^5.1.2"
+  }
+}
