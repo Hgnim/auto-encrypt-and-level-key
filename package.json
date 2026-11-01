@@ -1,21 +1,32 @@
 {
   "name": "auto-encrypt-and-level-key",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "type": "module",
   "files": [
     "dist"
   ],
   "main": "./dist/external/client.js",
+  "import": "./dist/external/client.js",
+  "browser": "./dist/external/client.js",
+  "default": "./dist/external/client.js",
   "types": "./dist/external/client/index.d.ts",
   "exports": {
+    ".": {
+      "types": "./dist/external/client/index.d.ts",
+      "import": "./dist/external/client.js",
+      "browser": "./dist/external/client.js",
+      "default": "./dist/external/client.js"
+    },
     "./node": {
       "types": "./dist/external/node/index.d.ts",
       "node": "./dist/external/node.js"
     },
     "./client": {
       "types": "./dist/external/client/index.d.ts",
-      "browser": "./dist/external/client.js"
+      "import": "./dist/external/client.js",
+      "browser": "./dist/external/client.js",
+      "default": "./dist/external/client.js"
     },
     "./bundle/node": {
       "types": "./dist/bundle/node/index.d.ts",
@@ -23,7 +34,9 @@
     },
     "./bundle/client": {
       "types": "./dist/bundle/client/index.d.ts",
-      "browser": "./dist/bundle/client.js"
+      "import": "./dist/bundle/client.js",
+      "browser": "./dist/bundle/client.js",
+      "default": "./dist/bundle/client.js"
     }
   },
   "scripts": {
