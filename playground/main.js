@@ -23,7 +23,12 @@ function btn1_click() {
 async function btn2_click() { 
     console.log(await getFile('test2/Test2.html', 'testKey1'))
 }
-function btn3_click() { }
+async function btn3_click() { 
+    //console.log(checkAndInputKey('testKey2'));
+    console.log(await getFile('test1.html', 'testKey2'))
+    console.log(await getFile('test1.html', 'testKey1'))
+    console.log(await getFile('test2/Test2.html', 'testKey2'))
+}
 
 window.btn1_click = btn1_click;
 window.btn2_click = btn2_click;

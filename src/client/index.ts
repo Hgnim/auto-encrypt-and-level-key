@@ -87,23 +87,22 @@ export default async function AEALK(opt: AEALK_Opt) {
                         try {
                             if (kl < ef.level) return 3;
 
-                            const otherKey: string[] = [];
-                            for (let i = 0; i < kl; i++) {
-                                let tmpKey;
-                                if (i === 0) tmpKey = k;
-                                else tmpKey = otherKey[i - 1];
+                            const allKey: string[] = [k];
+                            for (let i = 1; i <= kl; i++) {
+                                let tmpKey = allKey[i - 1];
                                 
-                                otherKey.push(decryptStringToString(
-                                    dataFile.levelKeyEnc[kl - i - 1],
-                                    tmpKey
-                                ));
+                                allKey.push(
+                                    decryptStringToString(
+                                        dataFile.levelKeyEnc[kl - i],
+                                        tmpKey,
+                                    ),
+                                );
                             }
 
                             let fileKey: string = '';
-                            for (let i = 0; i < ef.level; i++){
-                                fileKey += otherKey[otherKey.length - 1 - i];
+                            for (let i = 0; i <= ef.level; i++){
+                                fileKey += allKey[allKey.length - 1 - i];
                             }
-                            fileKey += k;
 
                             return decryptStringToString(ef.encContent, fileKey);
                         } catch {
