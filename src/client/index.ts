@@ -65,6 +65,10 @@ export default async function AEALK(opt: AEALK_Opt) {
         return cookie.get(key_cookieName);
     }
 
+    function clearKeyFromCookie(): void{
+        cookie.remove(key_cookieName);
+    }
+
     /**
      * 获取解密后的文件
      * @param path 路径，基于root的路径，开头无需斜杠
@@ -122,5 +126,6 @@ export default async function AEALK(opt: AEALK_Opt) {
         getKeyFromCookie,
         getFile,
         //dataFile,
+        clearKeyFromCookie,
     };
 }
