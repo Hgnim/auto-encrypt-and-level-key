@@ -1,6 +1,10 @@
 import fs from "fs";
 import path from "path";
-import { encryptStringToString } from "ez-encrypt";
+import {
+    encryptUint8ArrayToString,
+    encryptStringToString,
+    convUint8ArrayToString,
+} from "ez-encrypt";
 import type { EncFile } from '../global/encFile.type';
 import type { DataFile } from '../global/dataFile.type';
 import getHash from '../global/getHash';
@@ -62,8 +66,8 @@ export default function buildEncFiles(opt: BEF_Opt) {
             } else return null;
         })();
 
-        const sourceContent: string = fs.readFileSync(filePath, "utf8");
-        const sourceHash: string = getHash(sourceContent);
+        const sourceContent: Uint8Array = fs.readFileSync(filePath, null);
+        const sourceHash: string = getHash(convUint8ArrayToString(sourceContent));
         if (hash != sourceHash) {
             hash = sourceHash;
 
@@ -74,7 +78,7 @@ export default function buildEncFiles(opt: BEF_Opt) {
                 }
                 return k;
             })();
-            const encContent = encryptStringToString(sourceContent, key);
+            const encContent = encryptUint8ArrayToString(sourceContent, key);
 
             fs.writeFileSync(
                 outPath,

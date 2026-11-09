@@ -2,7 +2,11 @@ import { DataFile } from "../global/dataFile.type";
 import cookie from "js-cookie";
 import getHash from "../global/getHash";
 import { EncFile } from "../global/encFile.type";
-import { decryptStringToString } from "ez-encrypt";
+import {
+    decryptStringToUint8Array,
+    decryptStringToString,
+    convUint8ArrayToString,
+} from "ez-encrypt";
 
 const key_cookieName = "aealk_key";
 
@@ -12,17 +16,18 @@ export type AEALK_Opt = {
     cookiePath?: string;
 };
 export default async function AEALK(opt: AEALK_Opt) {
-    const cookiePath: string = (opt.cookiePath === undefined) ? '/' : opt.cookiePath;
+    const cookiePath: string =
+        opt.cookiePath === undefined ? "/" : opt.cookiePath;
 
-    let initIsSu: boolean|null=null;
-    const dataFile: DataFile|null = await (async () => {
+    let initIsSu: boolean | null = null;
+    const dataFile: DataFile | null = await (async () => {
         const res = await fetch(`${opt.rootPath}/data.json`);
         if (res.ok) {
             return JSON.parse(await res.text()) as DataFile;
         } else {
             initIsSu = false;
             return null;
-        };
+        }
     })();
 
     /**
@@ -30,7 +35,7 @@ export default async function AEALK(opt: AEALK_Opt) {
      * @param key 密钥
      * @returns 返回等级值，密钥错误则返回false，其它错误则返回null
      */
-    function getKeyLevel(key: string): number|false|null {
+    function getKeyLevel(key: string): number | false | null {
         if (dataFile) {
             //console.log(dataFile);
             const kh = getHash(key);
@@ -47,7 +52,7 @@ export default async function AEALK(opt: AEALK_Opt) {
      * @param key 密钥
      * @returns 成功返回true，否则返回false
      */
-    function checkAndInputKey(key:string):boolean {
+    function checkAndInputKey(key: string): boolean {
         const kl = getKeyLevel(key);
         //console.log(kl);
         if (kl !== false && kl !== null) {
@@ -61,11 +66,11 @@ export default async function AEALK(opt: AEALK_Opt) {
         } else return false;
     }
 
-    function getKeyFromCookie():string|undefined {
+    function getKeyFromCookie(): string | undefined {
         return cookie.get(key_cookieName);
     }
 
-    function clearKeyFromCookie(): void{
+    function clearKeyFromCookie(): void {
         cookie.remove(key_cookieName);
     }
 
@@ -75,10 +80,10 @@ export default async function AEALK(opt: AEALK_Opt) {
      * @param key 密钥，留空则自动读取cookie
      * @returns 成功则返回文件内容；获取文件失败返回1；密钥错误返回2；权限不够返回3
      */
-    async function getFile(
+    async function getUint8ArrayFromFile(
         path: string,
         key: string | null = null,
-    ): Promise<string | number> {
+    ): Promise<Uint8Array | number> {
         if (dataFile) {
             const k = key == null ? getKeyFromCookie() : key;
 
@@ -94,7 +99,7 @@ export default async function AEALK(opt: AEALK_Opt) {
                             const allKey: string[] = [k];
                             for (let i = 1; i <= kl; i++) {
                                 let tmpKey = allKey[i - 1];
-                                
+
                                 allKey.push(
                                     decryptStringToString(
                                         dataFile.levelKeyEnc[kl - i],
@@ -103,12 +108,15 @@ export default async function AEALK(opt: AEALK_Opt) {
                                 );
                             }
 
-                            let fileKey: string = '';
-                            for (let i = 0; i <= ef.level; i++){
+                            let fileKey: string = "";
+                            for (let i = 0; i <= ef.level; i++) {
                                 fileKey += allKey[allKey.length - 1 - i];
                             }
 
-                            return decryptStringToString(ef.encContent, fileKey);
+                            return decryptStringToUint8Array(
+                                ef.encContent,
+                                fileKey,
+                            );
                         } catch {
                             return 2;
                         }
@@ -117,6 +125,34 @@ export default async function AEALK(opt: AEALK_Opt) {
             } else return 2;
         } else return 1;
     }
+    /**
+     * 获取解密后的文件
+     * @param path 路径，基于root的路径，开头无需斜杠
+     * @param key 密钥，留空则自动读取cookie
+     * @returns 成功则返回文件内容；获取文件失败返回1；密钥错误返回2；权限不够返回3
+     */
+    async function getStringFromFile(
+        path: string,
+        key: string | null = null,
+    ): Promise<string | number> {
+        const ret = await getUint8ArrayFromFile(path, key);
+        if (typeof ret === "number") return ret;
+        else return convUint8ArrayToString(ret);
+    }
+    /**
+     * 获取解密后的文件
+     * @param path 路径，基于root的路径，开头无需斜杠
+     * @param key 密钥，留空则自动读取cookie
+     * @returns 成功则返回文件内容；获取文件失败返回1；密钥错误返回2；权限不够返回3
+     */
+    async function getBlobFromFile(
+        path: string,
+        key: string | null = null,
+    ): Promise<Blob | number> {
+        const ret = await getUint8ArrayFromFile(path, key);
+        if (typeof ret === "number") return ret;
+        else return new Blob([convUint8ArrayToString(ret) as BlobPart]);
+    }
 
     if (initIsSu === null) initIsSu = true;
     return {
@@ -124,8 +160,10 @@ export default async function AEALK(opt: AEALK_Opt) {
         getKeyLevel,
         checkAndInputKey,
         getKeyFromCookie,
-        getFile,
         //dataFile,
         clearKeyFromCookie,
+        getUint8ArrayFromFile,
+        getStringFromFile,
+        getBlobFromFile,
     };
 }
