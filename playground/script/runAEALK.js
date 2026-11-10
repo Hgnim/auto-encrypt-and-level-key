@@ -15,21 +15,28 @@ buildEncFiles({
     ],
     doEnc: [
         {
-            filePath: './test1.html',
+            path: './test1.html',
             keyLevel: 0,
         }, {
-            filePath: './test2.html',
+            path: './test2.html',
             keyLevel: 1,
             output: {
                 path: './test2',
                 name: 'Test2.html'
             }
         }, {
-            filePath: './test3.html',
+            path: './test3.html',
             keyLevel: 2,
             output: {
                 name: 'TEST3.html'
             }
-        }
+        }, {
+            path: './test4',
+            pathIsDir: true,
+            keyLevel: 1,
+            output: {
+                path: './test4',
+            }
+        },
     ],
 });

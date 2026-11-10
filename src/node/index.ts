@@ -14,7 +14,8 @@ export type BEF_Opt = {
     outputDir: string;
     levelKeys: string[];
     doEnc: {
-        filePath: string;
+        path: string;
+        pathIsDir?: boolean;
         keyLevel: number;
         output?: {
             path?: string;
@@ -43,54 +44,113 @@ export default function buildEncFiles(opt: BEF_Opt) {
         const output_path: string | undefined=de.output?.path;
         const output_name: string | undefined=de.output?.name;
 
-        const filePath: string = path.join(opt.rootDir, de.filePath);
+        const pathIsDir: boolean = de.pathIsDir === true;
+        const tgPath: string = path.join(opt.rootDir, de.path);
         const keyLevel: number = (() => {
             if (de.keyLevel < 0) return 0;
             else if (de.keyLevel >= opt.levelKeys.length) return opt.levelKeys.length - 1;
             else return de.keyLevel;
         })();
-        const outDir: string =
-            output_path !== undefined
-                ? path.join(outputDir, output_path)
-                : outputDir;
-        checkDir(outDir);
-        const outPath: string = path.join(
-            outDir,
-            `${output_name === undefined ? path.basename(filePath) : output_name}.enc.json`,
-        );
-        let hash: string | null = (() => {
-            if (fs.existsSync(outPath)) {
-                const haveFile = JSON.parse(fs.readFileSync(outPath, "utf8")) as EncFile;
-                if(log) console.log(`输出文件已存在：${outPath}；哈希值：${haveFile.hash}`);
-                return haveFile.hash;
-            } else return null;
+        const inputPath: string[] = (() => { 
+            if (pathIsDir) {
+                const output: string[] = [];
+                const rea = fs.readdirSync(tgPath, {
+                    recursive: true,
+                    withFileTypes: true,
+                });
+                //console.log(rea)
+                rea.forEach((item) => {
+                    if (item.isFile()) {
+                        output.push(path.join(item.parentPath,item.name));
+                    }
+                });
+                return output;
+            } else return [tgPath];
         })();
-
-        const sourceContent: Uint8Array = fs.readFileSync(filePath, null);
-        const sourceHash: string = getHash(convUint8ArrayToString(sourceContent));
-        if (hash != sourceHash) {
-            hash = sourceHash;
-
-            const key: string = (() => {
-                let k: string = "";
-                for (let i = 0; i <= keyLevel; i++) {
-                    k += opt.levelKeys[i];
-                }
-                return k;
+        
+        inputPath.forEach(iptPath => {
+            console.log('----------------------------------------');
+            console.log(`处理文件：${iptPath}`);
+            const outDir: string = (() => {
+                if (pathIsDir) {
+                    const iptPathParse = path.parse(iptPath);
+                    return output_path !== undefined
+                        ? path.join(
+                              outputDir,
+                              output_path,
+                              path.relative(opt.rootDir, iptPathParse.dir),
+                          )
+                        : path.join(
+                              outputDir,
+                              path.relative(opt.rootDir, iptPathParse.dir),
+                          );
+                }else return output_path !== undefined
+                    ? path.join(outputDir, output_path)
+                    : outputDir;
+            })  ()              ;
+            checkDir(outDir);
+            const outPath: string = (() => {
+                if (pathIsDir) {
+                    const iptPathParse = path.parse(iptPath);
+                    return path.join(
+                        outDir,
+                        `${iptPathParse.base}.enc.json`
+                    )
+                }else return path.join(
+                    outDir,
+                    `${output_name === undefined ? path.basename(tgPath) : output_name}.enc.json`,
+                );
             })();
-            const encContent = encryptUint8ArrayToString(sourceContent, key);
 
-            fs.writeFileSync(
-                outPath,
-                JSON.stringify({
-                    encContent: encContent,
-                    hash: hash,
-                    level: de.keyLevel,
-                } as EncFile),
+            let hash: string | null = (() => {
+                if (fs.existsSync(outPath)) {
+                    const haveFile = JSON.parse(
+                        fs.readFileSync(outPath, "utf8"),
+                    ) as EncFile;
+                    if (log)
+                        console.log(
+                            `输出文件已存在：${outPath}；哈希值：${haveFile.hash}`,
+                        );
+                    return haveFile.hash;
+                } else return null;
+            })();
+
+            const sourceContent: Uint8Array = fs.readFileSync(iptPath, null);
+            const sourceHash: string = getHash(
+                convUint8ArrayToString(sourceContent),
             );
+            if (hash != sourceHash) {
+                hash = sourceHash;
 
-            if (log) console.log(`执行文件加密：${filePath} ==> ${outPath}；哈希值：${hash}`);
-        } else { if (log) console.log(`哈希值一致，跳过。哈希值：${hash}`); }
+                const key: string = (() => {
+                    let k: string = "";
+                    for (let i = 0; i <= keyLevel; i++) {
+                        k += opt.levelKeys[i];
+                    }
+                    return k;
+                })();
+                const encContent = encryptUint8ArrayToString(
+                    sourceContent,
+                    key,
+                );
+
+                fs.writeFileSync(
+                    outPath,
+                    JSON.stringify({
+                        encContent: encContent,
+                        hash: hash,
+                        level: de.keyLevel,
+                    } as EncFile),
+                );
+
+                if (log)
+                    console.log(
+                        `执行文件加密：${iptPath} ==> ${outPath}；哈希值：${hash}`,
+                    );
+            } else {
+                if (log) console.log(`哈希值一致，跳过。哈希值：${hash}`);
+            }
+        });
     });
 
     {
