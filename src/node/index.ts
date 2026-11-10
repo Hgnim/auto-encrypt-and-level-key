@@ -74,16 +74,10 @@ export default function buildEncFiles(opt: BEF_Opt) {
             const outDir: string = (() => {
                 if (pathIsDir) {
                     const iptPathParse = path.parse(iptPath);
+                    const rel = path.relative(tgPath, iptPathParse.dir);
                     return output_path !== undefined
-                        ? path.join(
-                              outputDir,
-                              output_path,
-                              path.relative(opt.rootDir, iptPathParse.dir),
-                          )
-                        : path.join(
-                              outputDir,
-                              path.relative(opt.rootDir, iptPathParse.dir),
-                          );
+                        ? path.join(outputDir, output_path, rel)
+                        : path.join(outputDir, rel);
                 }else return output_path !== undefined
                     ? path.join(outputDir, output_path)
                     : outputDir;
